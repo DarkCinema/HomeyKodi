@@ -1,8 +1,6 @@
 'use strict'
 
 var Utils = require('../../libs/utils');
-var items;
-var command= '';
 // KODI Commands
 var KODIcommands = [
   { "name": 'left', "method": "Input.ExecuteAction", "params":{ "action": "left"}},
