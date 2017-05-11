@@ -291,6 +291,29 @@ module.exports.setKODICommand = function (deviceSearchParameters, command) {
 ************************************/
 
 /* **********************************
+  SEND NOTIFICATION
+************************************/
+module.exports.SendNotification = function (deviceSearchParameters, command) {
+  // Kodi API: Input.ExecuteAction
+  return new Promise(function (resolve, reject) {
+    console.log('setKODICommand()', deviceSearchParameters)
+    // search Kodi instance by deviceSearchParameters
+    getKodiInstance(deviceSearchParameters)
+      .then(function (kodi) {      
+            kodi.run('GUI.ShowNotification', {"title":command.title,"message":command.message,"image":command.image, "displaytime":command.displaytime})
+            .then(function (result) {
+                resolve(kodi)
+            })             
+      })
+      .catch(reject)
+  })
+}
+
+/* **********************************
+  SEND NOTIFICATION
+************************************/
+
+/* **********************************
   SEARCH MUSIC
 ************************************/
 module.exports.searchMusic = function (deviceSearchParameters, queryProperty, searchQuery) {

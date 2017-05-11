@@ -828,7 +828,54 @@
             }
           }
          ]
+       },
+       {"id": "SendNotification",
+          "title": {
+            "en": "Send Notification to KODI",
+            "nl": "Stuur een notificatie naar KODI"
+                },
+          "fluidArgs": true,
+           "args": [
+          {
+            "name": "kodi",
+            "type": "device",
+            "filter": "driver_uri=homey:app:nl.marvinschenkel.kodi&driver_id=kodi"
+          },
+          {
+            "name": "title",
+            "type": "text",
+            "placeholder" : {
+               "en": "TITLE",
+               "nl" : "TITEL"
+            }
+          },
+          {
+            "name": "message",
+            "type": "text",
+            "placeholder" : {
+               "en": "MESSAGE",
+               "nl" : "BERICHT"
+            }
+          },
+          {
+            "name": "image",
+            "type": "text",
+            "placeholder" : {
+               "en": "IMAGE URL",
+               "nl" : "IMAGE URL"
+            }
+          },
+          {
+            "name": "displaytime",
+            "type": "number",
+            "placeholder" : {
+               "en": "DISPLAYTIME",
+               "nl" : "DISPLAYTIJD"
+            }
+          }
+         ]
        }
+          
     ]
   }
   ,

@@ -224,8 +224,9 @@ function init () {
   Homey.manager('flow').on('action.subtitle_off', onFlowActionSubtitleOff)
   Homey.manager('flow').on('action.party_mode_kodi', onFlowActionSetPartyMode)
   Homey.manager('flow').on('action.set_volume', onFlowActionSetVolume)
-  Homey.manager('flow').on('action.SetCommand', function (callback, args) { 
-    onFlowActionKODICommand (callback, args);
+
+  Homey.manager('flow').on('action.SendNotification', function (callback, args) { 
+    onFlowActionSendNotification (callback, args);  
     callback(null, true);
   });
   Homey.manager('flow').on('action.SetCommand.KODICommand.autocomplete', function (callback, value) {
@@ -233,6 +234,10 @@ function init () {
     var items = searchItems(commandSearchString, KODIcommands);
     callback(null, items);
 	});
+  Homey.manager('flow').on('action.SetCommand', function (callback, args) { 
+    onFlowActionKODICommand (callback, args);
+    callback(null, true);
+  });
 }
 module.exports.init = init
 
@@ -621,12 +626,22 @@ function onFlowActionSetVolume (callback, args) {
     .then(function () { callback(null, true) })
     .catch(function (error) { callback(error) })
 }
+
 function onFlowActionKODICommand (callback, args) {
   Homey.log('onFlowActionKODICommand()', args)
   Homey.manager('drivers').getDriver('kodi').setKODICommand(args.kodi.id, args.KODICommand)
     .then(function () { callback(null, true) })
     .catch(function (error) { callback(error) })
 }
+
+function onFlowActionSendNotification (callback, args) {
+  Homey.log('onFlowActionKODICommand()', args)
+
+  Homey.manager('drivers').getDriver('kodi').SendNotification(args.kodi.id, args)
+    .then(function () { callback(null, true) })
+    .catch(function (error) { callback(error) })
+}
+
 /* ******************
 	COMMON FUNCTIONS
 ********************/
