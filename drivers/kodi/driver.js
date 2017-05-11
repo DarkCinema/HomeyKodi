@@ -268,6 +268,29 @@ module.exports.stop = function (deviceSearchParameters) {
 }
 
 /* **********************************
+  SEND COMMAND
+************************************/
+module.exports.setKODICommand = function (deviceSearchParameters, command) {
+  // Kodi API: Input.ExecuteAction
+  return new Promise(function (resolve, reject) {
+    console.log('setKODICommand()', deviceSearchParameters)
+    // search Kodi instance by deviceSearchParameters
+    getKodiInstance(deviceSearchParameters)
+      .then(function (kodi) {
+            kodi.run(command.method, command.params)
+            .then(function (result) {
+                resolve(kodi)
+            })             
+      })
+      .catch(reject)
+  })
+}
+
+/* **********************************
+  SEND COMMAND
+************************************/
+
+/* **********************************
   SEARCH MUSIC
 ************************************/
 module.exports.searchMusic = function (deviceSearchParameters, queryProperty, searchQuery) {
