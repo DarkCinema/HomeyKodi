@@ -4,6 +4,11 @@
 var KodiWs = require('node-kodi-ws')
 var Fuse = require('fuse.js')
 var Utils = require('../../libs/utils')
+const http = require('http');
+var guiid = 10000
+
+
+
 
 // Keep track of registered devices
 var registeredDevices = []
@@ -271,24 +276,140 @@ module.exports.stop = function (deviceSearchParameters) {
   SEND COMMAND
 ************************************/
 module.exports.setKODICommand = function (deviceSearchParameters, command) {
-  // Kodi API: Input.ExecuteAction
+  // Kodi Send Key Commands and GUI Commands
   return new Promise(function (resolve, reject) {
     console.log('setKODICommand()', deviceSearchParameters)
     // search Kodi instance by deviceSearchParameters
     getKodiInstance(deviceSearchParameters)
       .then(function (kodi) {
-            kodi.run(command.method, command.params)
-            .then(function (result) {
-                resolve(kodi)
-            })             
+
+        if (JSON.stringify(command.method) == '"Input.ExecuteAction"') {
+              console.log("command Input.ExecuteAction!")
+
+                      if (JSON.stringify(command.params.action) == '"select"') {
+                            console.log("command SELECT matched!")
+                            var getGUIWindow = kodi.GUI.GetProperties({ properties: ["currentwindow"]});
+                            Promise.all([getGUIWindow]).then(function(data) {
+
+                                if  (data[0].currentwindow.id === 12005) {
+                                    // IF GUI is Fullscreen then show OSD
+                                    guiid = data[0].currentwindow.id;
+                                    kodi.run(command.method, {"action": "osd"}).then(function (result) {resolve(kodi)})}
+
+                                else if (data[0].currentwindow.id != 12005) {
+                                    // IF GUI is not Fullscreen then use SELECT
+                                    guiid = data[0].currentwindow.id;
+                                    kodi.run(command.method, command.params).then(function (result) {resolve(kodi)})}                     
+                            })
+                    }
+                   else if (JSON.stringify(command.params.action) == '"left"') {
+                            console.log("command left matched!")
+                            var getGUIWindow = kodi.GUI.GetProperties({ properties: ["currentwindow"]});
+                            Promise.all([getGUIWindow]).then(function(data) {
+
+                                if  (data[0].currentwindow.id === 12005) {
+                                    // IF GUI is Fullscreen then use SKIP
+                                    guiid = data[0].currentwindow.id;
+                                    kodi.run(command.method, { "action": "stepback"}).then(function (result) {resolve(kodi)})}
+
+                                else if (data[0].currentwindow.id != 12005) {
+                                    // IF GUI is not Fullscreen then use LEFT KEY
+                                    guiid = data[0].currentwindow.id;
+                                    kodi.run(command.method, command.params).then(function (result) {resolve(kodi)})}                   
+                            })
+                    }
+                    else if (JSON.stringify(command.params.action) == '"right"') {
+                            console.log("command left matched!")
+                            var getGUIWindow = kodi.GUI.GetProperties({ properties: ["currentwindow"]});
+                            Promise.all([getGUIWindow]).then(function(data) {
+
+                                if  (data[0].currentwindow.id === 12005) {
+                                    // IF GUI is Fullscreen then use SKIP
+                                    guiid = data[0].currentwindow.id;
+                                    kodi.run(command.method, { "action": "stepforward"}).then(function (result) {resolve(kodi)})}
+
+                                else if (data[0].currentwindow.id != 12005) {
+                                    // IF GUI is not Fullscreen then use RIGHT KEY
+                                    guiid = data[0].currentwindow.id;
+                                    kodi.run(command.method, command.params).then(function (result) {resolve(kodi)})}                   
+                            })
+                    }
+         
+
+                   else kodi.run(command.method, command.params).then(function (result) {resolve(kodi)});
+           };
+
+            if (JSON.stringify(command.method) == '"GUI.ActivateWindow"') {
+                  console.log("command GUI.ActivateWindow!")
+
+                  if (JSON.stringify(command.params.window) == '"pvrosdchannels"') {
+                    // IF Command is  PVRCHANNELOSD
+                      var getGUIWindow = kodi.GUI.GetProperties({ properties: ["currentwindow"]});
+                      Promise.all([getGUIWindow]).then(function(data) {
+
+                            if  (data[0].currentwindow.id === 12005) {
+                                // IF GUI is Fullscreen then show PVRCHANNELOSD
+                                guiid = data[0].currentwindow.id;
+                                var GUICommand = JSON.stringify(command.params);          
+                                //GUICommand = GUICommand.replace(/\s/gm,"");
+                                kodiguiwindow (GUICommand)
+                            }
+
+                            else if (data[0].currentwindow.id === 10608) {
+                                // IF GUI is not Fullscreen then use BACK
+                                console.log('GUI.ActivateWindow GUI-ID was not 12005:'+ data[0].currentwindow.id);
+                                guiid = data[0].currentwindow.id;
+                                kodi.run("Input.ExecuteAction", { "action": "back"}).then(function (result) {resolve(kodi)})
+                            }                   
+                    })
+                }
+            else {
+                var GUICommand = JSON.stringify(command.params);
+                console.log('GUICommand 2 ='+GUICommand);
+                kodiguiwindow (GUICommand)
+                };
+            }
+           // IF not SELECT then continue
+      else {
+        console.log('No match Command:'+JSON.stringify(command.params.window))
+        console.log('No Match Command:'+JSON.stringify(command.params.action))
+        console.log('No match Command:'+JSON.stringify(command.method))
+        // kodi.run(command.method, command.params).then(function (result) {resolve(kodi)})  
+      // Run other Commands as usual
+      };
       })
-      .catch(reject)
-  })
+
+      .catch(reject)  
+
+  });            
 }
 
 /* **********************************
   SEND COMMAND
 ************************************/
+
+function kodiguiwindow(GUICommand) {
+var options = {
+      hostname: '172.19.3.211',
+      port: '8080',
+      path: '/jsonrpc?request={"jsonrpc":"2.0","id":1,"method":"GUI.ActivateWindow","params":'+GUICommand+'}}',
+      method: 'GET',
+      headers: {'Content-Type': 'application/json'},
+      json: true
+    };
+	var receivedData = '';
+	var req = http.request(options, function(res) {
+		res.setEncoding('utf8');
+		res.on('data', function (body) {
+			receivedData = receivedData + body;
+		});
+		res.on('end', function () {
+		
+		});
+	});
+	req.on('error', function(e) { console.log('problem with request: ' + e.message); });
+	req.end();
+}
 
 /* **********************************
   SEND NOTIFICATION
