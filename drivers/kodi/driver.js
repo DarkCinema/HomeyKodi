@@ -6,6 +6,7 @@ var Fuse = require('fuse.js')
 var Utils = require('../../libs/utils')
 const http = require('http');
 var guiid = 10000
+//var KODIIP = '127.0.0.1'
 
 
 
@@ -341,7 +342,8 @@ module.exports.setKODICommand = function (deviceSearchParameters, command) {
 
             if (JSON.stringify(command.method) == '"GUI.ActivateWindow"') {
                   console.log("command GUI.ActivateWindow!")
-
+                  var KODIIP = JSON.stringify(deviceSearchParameters)
+                  KODIIP = KODIIP.replace(/["]/g,"");
                   if (JSON.stringify(command.params.window) == '"pvrosdchannels"') {
                     // IF Command is  PVRCHANNELOSD
                       var getGUIWindow = kodi.GUI.GetProperties({ properties: ["currentwindow"]});
@@ -351,8 +353,7 @@ module.exports.setKODICommand = function (deviceSearchParameters, command) {
                                 // IF GUI is Fullscreen then show PVRCHANNELOSD
                                 guiid = data[0].currentwindow.id;
                                 var GUICommand = JSON.stringify(command.params);          
-                                //GUICommand = GUICommand.replace(/\s/gm,"");
-                                kodiguiwindow (GUICommand)
+                                kodiguiwindow (GUICommand, KODIIP)
                             }
 
                             else if (data[0].currentwindow.id === 10608) {
@@ -374,12 +375,10 @@ module.exports.setKODICommand = function (deviceSearchParameters, command) {
         console.log('No match Command:'+JSON.stringify(command.params.window))
         console.log('No Match Command:'+JSON.stringify(command.params.action))
         console.log('No match Command:'+JSON.stringify(command.method))
-        // kodi.run(command.method, command.params).then(function (result) {resolve(kodi)})  
-      // Run other Commands as usual
       };
-      })
+    })
 
-      .catch(reject)  
+    .catch(reject)  
 
   });            
 }
@@ -388,9 +387,9 @@ module.exports.setKODICommand = function (deviceSearchParameters, command) {
   SEND COMMAND
 ************************************/
 
-function kodiguiwindow(GUICommand) {
+function kodiguiwindow(GUICommand, KODIIP) {
 var options = {
-      hostname: '172.19.3.211',
+      hostname: KODIIP,
       port: '8080',
       path: '/jsonrpc?request={"jsonrpc":"2.0","id":1,"method":"GUI.ActivateWindow","params":'+GUICommand+'}}',
       method: 'GET',
