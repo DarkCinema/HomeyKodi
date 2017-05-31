@@ -338,12 +338,14 @@ module.exports.setKODICommand = function (deviceSearchParameters, command) {
          
 
                    else kodi.run(command.method, command.params).then(function (result) {resolve(kodi)});
-           };
+          };
 
-            if (JSON.stringify(command.method) == '"GUI.ActivateWindow"') {
-                  console.log("command GUI.ActivateWindow!")
-                  var KODIIP = JSON.stringify(deviceSearchParameters)
-                  KODIIP = KODIIP.replace(/["]/g,"");
+          if (JSON.stringify(command.method) == '"GUI.ActivateWindow"') {
+                //console.log("command GUI.ActivateWindow!")
+                var KODIIP = JSON.stringify(deviceSearchParameters)
+                KODIIP = KODIIP.replace(/["]/g,"");
+
+
                   if (JSON.stringify(command.params.window) == '"pvrosdchannels"') {
                     // IF Command is  PVRCHANNELOSD
                       var getGUIWindow = kodi.GUI.GetProperties({ properties: ["currentwindow"]});
@@ -358,27 +360,53 @@ module.exports.setKODICommand = function (deviceSearchParameters, command) {
 
                             else if (data[0].currentwindow.id === 10608) {
                                 // IF GUI is not Fullscreen then use BACK
-                                console.log('GUI.ActivateWindow GUI-ID was not 12005:'+ data[0].currentwindow.id);
+                                console.log('GUI.ActivateWindow GUI-ID is 10608:'+ data[0].currentwindow.id);
                                 guiid = data[0].currentwindow.id;
                                 kodi.run("Input.ExecuteAction", { "action": "back"}).then(function (result) {resolve(kodi)})
-                            }                   
+                            }  
+                                             
                     })
-                }
-            else {
-                var GUICommand = JSON.stringify(command.params);
-                console.log('GUICommand 2 ='+GUICommand);
-                kodiguiwindow (GUICommand)
-                };
-            }
-           // IF not SELECT then continue
-      else {
-        console.log('No match Command:'+JSON.stringify(command.params.window))
-        console.log('No Match Command:'+JSON.stringify(command.params.action))
-        console.log('No match Command:'+JSON.stringify(command.method))
-      };
-    })
+                  }
 
-    .catch(reject)  
+                  if (JSON.stringify(command.params.window) == '"tvguide"') {
+                      // IF Command is  PVRCHANNELOSD
+                        var getGUIWindow = kodi.GUI.GetProperties({ properties: ["currentwindow"]});
+                        Promise.all([getGUIWindow]).then(function(data) {
+
+                              if  (data[0].currentwindow.id === 12005) {
+                                  // IF GUI is Fullscreen then show TVGUIDE
+                                  guiid = data[0].currentwindow.id;
+                                  var GUICommand = JSON.stringify(command.params);          
+                                  kodiguiwindow (GUICommand, KODIIP)
+                              }
+
+                              else if (data[0].currentwindow.id === 10702) {
+                                  // IF GUI is not Fullscreen then use FULLSCREENWINDOW
+                                  console.log('GUI.ActivateWindow GUI-ID is 10702:'+ data[0].currentwindow.id);
+                                  guiid = data[0].currentwindow.id;
+                                  var GUICommand = {"window":"fullscreenvideo"}
+                                  var GUICommand = JSON.stringify(GUICommand); 
+                                  kodiguiwindow (GUICommand, KODIIP)
+                              }                      
+                      })
+                  }
+
+        else {
+            var GUICommand = JSON.stringify(command.params);
+            console.log('GUICommand 2 ='+GUICommand);
+            kodiguiwindow (GUICommand, KODIIP)
+        };
+
+        }
+           // IF not SELECT then continue
+    else {
+      console.log('No match Command:'+JSON.stringify(command.params.window))
+      console.log('No Match Command:'+JSON.stringify(command.params.action))
+      console.log('No match Command:'+JSON.stringify(command.method))
+    };
+   })
+
+  .catch(reject)  
 
   });            
 }
