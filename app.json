@@ -1,5 +1,5 @@
 {
-   "id": "nl.marvinschenkel.kodi",
+  "id": "nl.marvinschenkel.kodi",
   "name": {
     "en": "Kodi",
     "nl": "Kodi"
@@ -197,6 +197,15 @@
               "label": {
                 "en": "TCP Port",
                 "nl": "TCP Poort"
+              }
+            },
+            {
+              "id": "httpport",
+              "type": "text",
+              "value":"8080",
+              "label": {
+                "en": "HTTP Port",
+                "nl": "HTTP Poort"
               }
             }
           ]

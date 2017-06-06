@@ -51,7 +51,8 @@
     "configuration": {
        "name": "Naam",
        "ip_address": "IP Adres",
-       "tcpPort": "TCP Poort (standaard 9090)"       
+       "tcpPort": "TCP Poort (standaard 9090)",
+			 "HTTPPort": "HTTP Poort (standaard 8080)"      
     },
 		"feedback":{
 			"could_not_connect": "Kon geen verbinding maken met Kodi. Check je connectie gegevens.",

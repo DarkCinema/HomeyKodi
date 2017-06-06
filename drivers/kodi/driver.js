@@ -5,11 +5,6 @@ var KodiWs = require('node-kodi-ws')
 var Fuse = require('fuse.js')
 var Utils = require('../../libs/utils')
 const http = require('http');
-var guiid = 10000
-//var KODIIP = '127.0.0.1'
-
-
-
 
 // Keep track of registered devices
 var registeredDevices = []
@@ -54,6 +49,7 @@ module.exports.init = function (devices, callback) {
             // Keep track of device id
             connection.id = settings.host
             connection.tcpport = settings.tcpport
+            connection.httpport = settings.httpport
             connection.device_data = device
             // Register the device
             registeredDevices.push(connection)
@@ -88,6 +84,7 @@ module.exports.pair = function (socket) {
         // Keep track of device id
         connection.id = device.settings.host
         connection.tcpport = device.settings.tcpport
+        connection.httpport = device.settings.httpport
         connection.device_data = device.data
         // Register the device
         registeredDevices.push(connection)
@@ -113,7 +110,7 @@ module.exports.deleted = function (device_data) {
 
 // A user has updated settings, update the device object
 module.exports.settings = function (device_data, newSettingsObj, oldSettingsObj, changedKeysArr, callback) {
-  console.log('Updating device', device_data.id, 'to', newSettingsObj.host, newSettingsObj.tcpport)
+  console.log('Updating device', device_data.id, 'to', newSettingsObj.host, newSettingsObj.tcpport, newSettingsObj.httpport)
   // If we can connect using the new settings
   KodiWs(newSettingsObj.host, newSettingsObj.tcpport)
     .then(function (connection) {
@@ -122,6 +119,7 @@ module.exports.settings = function (device_data, newSettingsObj, oldSettingsObj,
       // Keep track of the device id and port
       connection.id = newSettingsObj.host
       connection.tcpport = newSettingsObj.tcpport
+      connection.httpport = newSettingsObj.httpport
       connection.device_data = device_data
       // Register the new settings of device
       registeredDevices.push(connection)
@@ -278,6 +276,7 @@ module.exports.stop = function (deviceSearchParameters) {
 ************************************/
 module.exports.setKODICommand = function (deviceSearchParameters, command) {
   // Kodi Send Key Commands and GUI Commands
+  var guiid = ''
   return new Promise(function (resolve, reject) {
     console.log('setKODICommand()', deviceSearchParameters)
     // search Kodi instance by deviceSearchParameters
@@ -341,11 +340,9 @@ module.exports.setKODICommand = function (deviceSearchParameters, command) {
           };
 
           if (JSON.stringify(command.method) == '"GUI.ActivateWindow"') {
-                //console.log("command GUI.ActivateWindow!")
-                var KODIIP = JSON.stringify(deviceSearchParameters)
-                KODIIP = KODIIP.replace(/["]/g,"");
-
-
+                console.log("HTTPPort:"+kodi.httpport)
+                console.log("ID:"+kodi.id)
+               
                   if (JSON.stringify(command.params.window) == '"pvrosdchannels"') {
                     // IF Command is  PVRCHANNELOSD
                       var getGUIWindow = kodi.GUI.GetProperties({ properties: ["currentwindow"]});
@@ -355,7 +352,7 @@ module.exports.setKODICommand = function (deviceSearchParameters, command) {
                                 // IF GUI is Fullscreen then show PVRCHANNELOSD
                                 guiid = data[0].currentwindow.id;
                                 var GUICommand = JSON.stringify(command.params);          
-                                kodiguiwindow (GUICommand, KODIIP)
+                                kodiguiwindow (GUICommand, kodi)
                             }
 
                             else if (data[0].currentwindow.id === 10608) {
@@ -377,7 +374,7 @@ module.exports.setKODICommand = function (deviceSearchParameters, command) {
                                   // IF GUI is Fullscreen then show TVGUIDE
                                   guiid = data[0].currentwindow.id;
                                   var GUICommand = JSON.stringify(command.params);          
-                                  kodiguiwindow (GUICommand, KODIIP)
+                                  kodiguiwindow (GUICommand, kodi)
                               }
 
                               else if (data[0].currentwindow.id === 10702) {
@@ -386,7 +383,7 @@ module.exports.setKODICommand = function (deviceSearchParameters, command) {
                                   guiid = data[0].currentwindow.id;
                                   var GUICommand = {"window":"fullscreenvideo"}
                                   var GUICommand = JSON.stringify(GUICommand); 
-                                  kodiguiwindow (GUICommand, KODIIP)
+                                  kodiguiwindow (GUICommand, kodi)
                               }                      
                       })
                   }
@@ -394,7 +391,7 @@ module.exports.setKODICommand = function (deviceSearchParameters, command) {
         else {
             var GUICommand = JSON.stringify(command.params);
             console.log('GUICommand 2 ='+GUICommand);
-            kodiguiwindow (GUICommand, KODIIP)
+            kodiguiwindow (GUICommand, kodi)
         };
 
         }
@@ -415,10 +412,10 @@ module.exports.setKODICommand = function (deviceSearchParameters, command) {
   SEND COMMAND
 ************************************/
 
-function kodiguiwindow(GUICommand, KODIIP) {
+function kodiguiwindow(GUICommand, kodi) {
 var options = {
-      hostname: KODIIP,
-      port: '8080',
+      hostname: kodi.id,
+      port: kodi.httpport,
       path: '/jsonrpc?request={"jsonrpc":"2.0","id":1,"method":"GUI.ActivateWindow","params":'+GUICommand+'}}',
       method: 'GET',
       headers: {'Content-Type': 'application/json'},
@@ -1124,6 +1121,7 @@ function pollReconnect(device){
         // Keep track of device id
         connection.id = device.id
         connection.tcpport = device.tcpport
+        connection.httpport = device.httpport
         connection.device_data = device.device_data
         // Register the device
         registeredDevices.push(connection)

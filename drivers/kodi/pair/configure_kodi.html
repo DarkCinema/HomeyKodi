@@ -15,6 +15,7 @@
   $("label[for='name']").text(__('pair.configuration.name') + ':')
   $("label[for='ip_address']").text(__('pair.configuration.ip_address') + ':')  
   $("label[for='tcpPort']").text(__('pair.configuration.tcpPort') + ':')
+	$("label[for='HTTPPort']").text(__('pair.configuration.HTTPPort') + ':')
 	
 	function configure()
 	{		
@@ -23,6 +24,7 @@
 		var name = $("#name").val();
 		var ipAddress = $("#ip_address").val();		
 		var tcpPort = $("#tcpPort").val();
+		var HTTPPort = $("#HTTPPort").val();
 	
 		var device = {
 				data: { // this data object is saved to- and unique for the device. It is passed on the get and set functions as 1st argument
@@ -31,7 +33,8 @@
 				name: name, // the name for this device (optional),
 				settings: { 
 					host: ipAddress,		
-					tcpport: tcpPort
+					tcpport: tcpPort,
+					httpport: HTTPPort
 				} // initial settings (optional)
 			}
 		console.log('device', device)
@@ -63,6 +66,9 @@
         
     <label for="tcpPort"></label>          
     <input type="text" id="tcpPort"></input>
+
+		<label for="HTTPPort"></label>          
+    <input type="text" id="HTTPPort"></input>
   </span>    
 </p>
 <button class="button" id="authentication_button" onclick="configure();" data-i18n="pair.authorization.start_configuration" />

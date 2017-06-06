@@ -51,7 +51,8 @@
     "configuration": {
        "name": "Name",
        "ip_address": "IP Address",       
-       "tcpPort": "TCP Port (Default 9090)"       
+       "tcpPort": "TCP Port (Default 9090)",
+			 "HTTPPort": "HTTP Poort (Default 8080)"      
     },
 		"feedback":{
 			"could_not_connect": "Could not connect to your Kodi! Please verify your details.",
